@@ -1,4 +1,6 @@
-
 /target
-.shuttle*
-Secrets*.toml
+/backend/.shuttle/
+/backend/.env
+/backend/Secrets*.toml
+.env
+.DS_Store
