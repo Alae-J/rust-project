@@ -1,6 +1,18 @@
+# Global ignores
+.DS_Store
+.env
+.env.example
+
+# Rust & Cargo
 /target
+**/target/
+Cargo.lock
+
+# Shuttle-specific
 /backend/.shuttle/
 /backend/.env
 /backend/Secrets*.toml
-.env
-.DS_Store
+
+# Node & Frontend (si applicable)
+node_modules/
+dist/
