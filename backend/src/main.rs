@@ -1,10 +1,10 @@
-use shuttle_axum::axum::{routing::{get, post}, Json, Router};
+use axum::{routing::{get, post}, Json, Router, extract::State};
 use shuttle_axum::ShuttleAxum;
+use shuttle_runtime::SecretStore;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tower_http::cors::CorsLayer;
-use dotenvy::dotenv;
-use std::env;
+use std::sync::Arc;
 
 #[derive(Deserialize)]
 struct ChatRequest {
@@ -16,66 +16,75 @@ struct ChatResponse {
     paraphrasedText: String,
 }
 
+#[derive(Clone)]
+struct AppState {
+    api_key: Arc<String>,
+}
+
 async fn hello_world() -> &'static str {
     "Hello, world!"
 }
 
-async fn chat_ai(Json(payload): Json<ChatRequest>) -> Json<ChatResponse> {
+async fn chat_ai(
+    State(state): State<AppState>,
+    Json(payload): Json<ChatRequest>,
+) -> Json<ChatResponse> {
     let client = reqwest::Client::new();
 
-    let api_key = env::var("AI_API_KEY").unwrap_or_else(|_| {
-        eprintln!("⚠️ AI_API_KEY not found in environment.");
-        "missing-key".into()
-    });
-
-    let engineered_prompt = format!(
-        "Rewrite the following text in a different wording, while preserving the original meaning. Do not add emojis, and do not surround the result with quotes:\n\n{}",
+    // ✅ Strong prompt engineering for precise paraphrasing
+    let prompt = format!(
+        "Rephrase the following sentence in a clear, concise, and natural tone. Keep the original meaning exactly. Do not include emojis, quotation marks, or explanations. Only return the rewritten sentence:\n\n{}",
         payload.prompt
     );
 
     let res = client
         .post("https://openrouter.ai/api/v1/chat/completions")
         .header("Content-Type", "application/json")
-        .header("Authorization", format!("Bearer {}", api_key))
+        .header("Authorization", format!("Bearer {}", state.api_key))
         .json(&json!({
-            "model": "deepseek/deepseek-chat:free",
-            "messages": [{ "role": "user", "content": engineered_prompt }]
+            "model": "mistralai/mistral-7b-instruct:free",
+            "messages": [{ "role": "user", "content": prompt }]
         }))
         .send()
         .await;
 
     match res {
         Ok(resp) => {
-            let body = resp.text().await.unwrap_or("Failed to read response".into());
+            let body = resp.text().await.unwrap_or_default();
             let parsed: serde_json::Value = serde_json::from_str(&body).unwrap_or_default();
-            let mut text = parsed["choices"][0]["message"]["content"]
-                .as_str()
-                .unwrap_or("AI response not found")
-                .trim()
-                .to_string();
 
-            // Remove starting and ending quotes if they exist
-            if text.starts_with('"') && text.ends_with('"') && text.len() > 1 {
-                text = text[1..text.len() - 1].to_string();
-            }
+            let maybe_text = parsed.get("choices")
+                .and_then(|c| c.get(0))
+                .and_then(|c| c.get("message"))
+                .and_then(|m| m.get("content"))
+                .and_then(|s| s.as_str());
 
-            Json(ChatResponse { paraphrasedText: text })
+            Json(ChatResponse {
+                paraphrasedText: maybe_text.unwrap_or("⚠️ AI response not found").trim().to_string()
+            })
         }
         Err(e) => Json(ChatResponse {
-            paraphrasedText: format!("Request failed: {}", e),
+            paraphrasedText: format!("❌ Request failed: {}", e),
         }),
     }
 }
 
 #[shuttle_runtime::main]
-async fn main() -> ShuttleAxum {
-    dotenv().ok(); // ✅ Load environment variables from .env
-
+async fn main(
+    #[shuttle_runtime::Secrets] secrets: SecretStore,
+) -> ShuttleAxum {
     let cors = CorsLayer::permissive();
+
+    let api_key = secrets.get("AI_API_KEY").unwrap_or_else(|| "missing-key".to_string());
+
+    let state = AppState {
+        api_key: Arc::new(api_key),
+    };
 
     let app = Router::new()
         .route("/", get(hello_world))
         .route("/paraphrase", post(chat_ai))
+        .with_state(state)
         .layer(cors);
 
     Ok(app.into())

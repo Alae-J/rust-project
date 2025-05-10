@@ -21,10 +21,10 @@ ai-paraphraser-assessment/
 ├── backend/              # Rust backend (Axum + Shuttle)
 │   ├── src/main.rs       # Main logic
 │   ├── Cargo.toml        # Crate config
-│   └── .env              # Contains AI_API_KEY
+│   └── Secrets.toml      # Contains AI_API_KEY (for Shuttle)
 ├── frontend/             # React frontend (Vite + TypeScript)
 │   ├── src/              # Components, hooks, pages
-│   └── vite.config.ts    # VITE_API_URL loaded here
+│   └── .env              # VITE_API_URL loaded here
 └── README.md
 ```
 
@@ -52,13 +52,13 @@ cd ai-paraphraser-assessment
 
 ### 2️⃣ Backend Setup (Rust + Shuttle)
 
-**`.env` file required in `/backend`:**
+Create a `Secrets.toml` file inside the `backend/` folder:
 
-```env
-AI_API_KEY=your-openrouter-key-here
+```toml
+AI_API_KEY = "your-openrouter-key-here"
 ```
 
-Then:
+Then run:
 
 ```bash
 cd backend
@@ -71,10 +71,13 @@ shuttle run
 
 ### 3️⃣ Frontend Setup (React + Vite)
 
+In `frontend/.env`, set the backend URL:
+
 ```env
-# In frontend/.env
 VITE_API_URL=http://127.0.0.1:8000
 ```
+
+Then run:
 
 ```bash
 cd ../frontend
@@ -106,58 +109,58 @@ npm run dev
 }
 ```
 
-✔️ Prompt-engineered to avoid emojis and quotation marks.
-✔️ Clean AI response handled in backend.
+🔁 Prompt-engineered for clarity.
+📅 Clean AI response handled in backend.
 
 ---
 
 ## 🧠 Prompt Engineering Strategy
 
-The prompt sent to the LLM looks like:
+The prompt sent to the LLM:
 
 ```
-Paraphrase the following text clearly and concisely, without adding or omitting meaning. Do not add emojis or quotation marks:
+Rephrase the following sentence in a clear, concise, and natural tone. Keep the original meaning exactly. Do not include emojis, quotation marks, or explanations. Only return the rewritten sentence:
 
 {user input}
 ```
 
-This ensures:
+Ensures:
 
-* Clean response without extra formatting
+* Clean output with no extra formatting
 * Accurate semantic preservation
-* AI doesn't act as a chatbot
+* Non-chatbot, one-line replies
 
 ---
 
 ## 🛡️ Architecture Decisions
 
-| Layer    | Stack                                      |
-| -------- | ------------------------------------------ |
-| Frontend | React + Vite + Tailwind                    |
-| Backend  | Rust (Axum) + Shuttle                      |
-| AI       | DeepSeek via OpenRouter                    |
-| Hosting  | Shuttle (backend), Local/Vercel (frontend) |
+| Layer    | Stack                                |
+| -------- | ------------------------------------ |
+| Frontend | React + Vite + Tailwind              |
+| Backend  | Rust (Axum) + Shuttle                |
+| AI       | DeepSeek via OpenRouter              |
+| Hosting  | Shuttle (backend), Vercel (frontend) |
 
 ---
 
 ## ⚠️ Known Limitations
 
-* Response parsing uses `.text()` + `serde_json::Value` — could be structured better.
-* No persistent history / login.
-* Basic error handling in frontend.
+* Response parsing uses generic `serde_json::Value`
+* No history or login system
+* No streamed or chunked response support
 
 ---
 
 ## 🧠 Ideas for Improvement
 
-* Switch to streamed responses for large texts
-* Add UI for multiple AI model selection
-* Support tone (casual, formal) or language control
-* Save past paraphrases locally
+* Streamed responses for larger inputs
+* Tone/language customization options
+* Model selector UI
+* Offline saving of paraphrased results
 
 ---
 
-## 👨‍💼 Author
+## 👨‍💻 Author
 
 **Alae Eddine Jahid**
 🌐 [alae-gijutsu.vercel.app](https://alae-gijutsu.vercel.app)
