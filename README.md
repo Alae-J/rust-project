@@ -1,126 +1,179 @@
-# AI-Powered Web App – Technical Assessment
+# 🧠 AI Paraphrasing Web App – Technical Assessment
 
-Welcome to my submission for the **AI Coding Assistant Technical Assessment**. This repository contains a simple web application that leverages a Rust backend with Axum and a TypeScript frontend. The project integrates a Large Language Model (LLM) using the OpenRouter API to demonstrate AI-assisted responses.
+Welcome to my submission for the **AI Coding Assistant Technical Assessment**. This repository features a full-stack web application that paraphrases text using an AI model via the OpenRouter API. It includes:
 
----
-
-## 🌐 Live Application
-[https://rust-project-0hsp.shuttle.app](https://rust-project-0hsp.shuttle.app)
-
----
-
-## 📂 Project Structure
-```
-├── backend/              # Rust + Axum + Shuttle API backend
-│   ├── src/
-│   │   └── main.rs       # Main Axum application
-│   ├── Cargo.toml        # Dependencies and metadata
-│   └── ...
-├── frontend/             # TypeScript frontend (React / Vite / etc.)
-│   ├── src/
-│   ├── public/
-│   └── ...
-└── README.md             # This file
-```
+* A **Rust backend** built with Axum and deployed using Shuttle
+* A **React + TypeScript frontend** using Vite
+* **LLM integration** via DeepSeek hosted on OpenRouter
 
 ---
 
-## 🧠 Tech Stack
+## 🌐 Live Demo
 
-| Layer        | Technology            |
-|--------------|------------------------|
-| Frontend     | TypeScript, React (Vite) |
-| Backend      | Rust, Axum, Shuttle     |
-| AI           | DeepSeek via OpenRouter API |
-| Deployment   | Shuttle (backend), Vercel (frontend) |
+👉 [https://rust-project-0hsp.shuttle.app](https://rust-project-0hsp.shuttle.app)
 
 ---
 
-## ⚙️ Setup Instructions (Local)
+## 📁 Project Structure
 
-### Prerequisites
-- [Node.js (v14+)](https://nodejs.org/)
-- [Rust + Cargo](https://www.rust-lang.org/tools/install)
-- [Shuttle CLI](https://www.shuttle.rs/docs/introduction/installation)
-- `.env` file or hardcoded Bearer API key (OpenRouter)
-
-### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/ai-assistant-assessment.git
-cd ai-assistant-assessment
+ai-paraphraser-assessment/
+├── backend/              # Rust backend (Axum + Shuttle)
+│   ├── src/main.rs       # Main logic
+│   ├── Cargo.toml        # Crate config
+│   └── .env              # Contains AI_API_KEY
+├── frontend/             # React frontend (Vite + TypeScript)
+│   ├── src/              # Components, hooks, pages
+│   └── vite.config.ts    # VITE_API_URL loaded here
+└── README.md
 ```
 
-### 2. Run Backend (Rust + Shuttle)
+---
+
+## ⚙️ Setup Instructions
+
+### 🔧 Prerequisites
+
+* [Node.js](https://nodejs.org/) (v16+)
+* [Rust + Cargo](https://www.rust-lang.org/tools/install)
+* [Shuttle CLI](https://www.shuttle.rs/docs/introduction/installation)
+* OpenRouter API key (e.g. DeepSeek free tier)
+
+---
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/ai-paraphraser-assessment.git
+cd ai-paraphraser-assessment
+```
+
+---
+
+### 2️⃣ Backend Setup (Rust + Shuttle)
+
+**`.env` file required in `/backend`:**
+
+```env
+AI_API_KEY=your-openrouter-key-here
+```
+
+Then:
+
 ```bash
 cd backend
 shuttle run
 ```
 
-### 3. Run Frontend (React/Vite)
+> Starts on `http://127.0.0.1:8000`
+
+---
+
+### 3️⃣ Frontend Setup (React + Vite)
+
+```env
+# In frontend/.env
+VITE_API_URL=http://127.0.0.1:8000
+```
+
 ```bash
-cd frontend
+cd ../frontend
 npm install
 npm run dev
 ```
 
+> Visit `http://localhost:5173`
+
 ---
 
-## 🧪 API Endpoint
+## 🚀 API Overview
 
-**POST** `/chat`
+### POST `/paraphrase`
 
-**Request Body:**
+**Request:**
+
 ```json
 {
-  "prompt": "What is Rust?"
+  "prompt": "Rewrite this sentence using different words."
 }
 ```
 
 **Response:**
+
 ```json
 {
-  "response": "Rust is a systems programming language focused on safety and performance."
+  "paraphrasedText": "Restate this sentence with different phrasing."
 }
 ```
 
----
-
-## 🧱 Architecture & Design Decisions
-- Used Shuttle for **zero-infra** backend deployment.
-- Axum router provides fast async endpoints.
-- OpenRouter used as a universal gateway to multiple LLMs (free & paid).
-- Simple REST structure enables easy frontend/backend scaling.
+✔️ Prompt-engineered to avoid emojis and quotation marks.
+✔️ Clean AI response handled in backend.
 
 ---
 
-## 🔧 Challenges
-- Lack of native Rust SDKs for OpenRouter required custom request building.
-- DeepSeek LLMs have intermittent latency or 500 errors (handled fallback with message).
-- Quick bootstrapping of frontend with proper UX in short time.
+## 🧠 Prompt Engineering Strategy
+
+The prompt sent to the LLM looks like:
+
+```
+Paraphrase the following text clearly and concisely, without adding or omitting meaning. Do not add emojis or quotation marks:
+
+{user input}
+```
+
+This ensures:
+
+* Clean response without extra formatting
+* Accurate semantic preservation
+* AI doesn't act as a chatbot
 
 ---
 
-## 🧩 Trade-offs & Improvements
-- Currently using blocking `reqwest` + `.text()` for JSON response parsing — should use structured deserialization.
-- Add client-side error boundaries for AI errors.
-- Support streamed responses and markdown rendering.
+## 🛡️ Architecture Decisions
+
+| Layer    | Stack                                      |
+| -------- | ------------------------------------------ |
+| Frontend | React + Vite + Tailwind                    |
+| Backend  | Rust (Axum) + Shuttle                      |
+| AI       | DeepSeek via OpenRouter                    |
+| Hosting  | Shuttle (backend), Local/Vercel (frontend) |
 
 ---
 
-## 👨‍💻 Author
-**Alae Eddine Jahid**  
-GitHub: [github.com/Alae-J](https://github.com/Alae-J)  
-Portfolio: [alae-gijutsu.vercel.app](https://alae-gijutsu.vercel.app)
+## ⚠️ Known Limitations
+
+* Response parsing uses `.text()` + `serde_json::Value` — could be structured better.
+* No persistent history / login.
+* Basic error handling in frontend.
 
 ---
 
-## 🏁 Submission Details
-- ✅ Live deployed backend (Shuttle)
-- ✅ Source code with commit history
-- ✅ AI functionality with free model
-- ✅ Setup guide + architecture summary
-- ✅ 2-hour build time compliance
+## 🧠 Ideas for Improvement
+
+* Switch to streamed responses for large texts
+* Add UI for multiple AI model selection
+* Support tone (casual, formal) or language control
+* Save past paraphrases locally
 
 ---
 
-Thank you for reviewing my assessment! 🚀
+## 👨‍💼 Author
+
+**Alae Eddine Jahid**
+🌐 [alae-gijutsu.vercel.app](https://alae-gijutsu.vercel.app)
+🐙 [github.com/Alae-J](https://github.com/Alae-J)
+
+---
+
+## ✅ Submission Checklist
+
+* ✅ Live backend via Shuttle
+* ✅ Working frontend + backend integration
+* ✅ Prompt-engineered LLM call
+* ✅ Free model with OpenRouter
+* ✅ Local setup + clear instructions
+* ✅ Delivered within 2h build constraint
+
+---
+
+Thank you for reviewing my submission! 🚀
