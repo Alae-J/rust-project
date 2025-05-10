@@ -10,7 +10,7 @@ Welcome to my submission for the **AI Coding Assistant Technical Assessment**. T
 
 ## 🌐 Live Demo
 
-👉 [https://rust-project-0hsp.shuttle.app](https://rust-project-0hsp.shuttle.app)
+👉 [https://rust-project-seven.vercel.app](https://rust-project-seven.vercel.app)
 
 ---
 
